@@ -1,0 +1,131 @@
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output
+import requests
+import re
+
+app = dash.Dash(__name__)
+
+# API call to check for valid username: returns json with is_valid_username and valid_reason
+def check_user(username):
+    url = f"http://ucr-lemon.duckdns.org:4000/user/checkusername?username={username}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        if data["is_valid_username"]:
+            return True  
+        else:
+            return False  
+    else:
+        return False 
+
+def check_password_strength(password):
+    length_check = len(password) > 8
+    uppercase_check = any(char.isupper() for char in password)
+    lowercase_check = any(char.islower() for char in password)
+    special_character_check = bool(re.search(r"[!@#$%^&*(),.?\":{}|<>]", password))
+    
+    return length_check and uppercase_check and lowercase_check and special_character_check
+
+app.layout = html.Div([
+    html.H1("GNPS2 - Analysis Hub"),
+    dcc.Input(id="username", type="text", placeholder="Username"),
+    dcc.Input(id="email", type="text", placeholder="Email"),
+    dcc.Input(id="password", type="password", placeholder="Password"),
+    dcc.Input(id="inv
+```p>(...), placeholder="Invite token"),
+html.Button(id="submit", children="Create Account"),
+html.Div(id="output-div")
+])
+
+@app.callback(
+Output("output-div", "children"),
+[Input("submit", "n\_clicks")],
+[State("username", "value"),
+State("email", "value"),
+State("password", "value"),
+State("invitetoken", "value")])
+def update\_output(n\_clicks, username, email, password, invitetoken):
+if n\_clicks is not None and n\_clicks > 0:
+if not check\_password\_strength(password):
+return "Password does not meet the required criteria. Please check the password requirements."
+elif not check\_user(username):
+return "User account could not be created. Username already taken."
+else:
+data = {
+"username": username,
+"email": email,
+"password": password,
+"invitetoken": invitetoken
+}
+response = requests.post("http://ucr-lemon.duckdns.org:4000/user/signup", data=data)
+if response.status\_code == 200:
+return "User account created successfully!"
+else:
+return f"Failed to create user account. Status code: {response.status\_code}"
+
+if **name** == "**main**":
+app.run\_server(debug=True)
+
+
+or 
+
+
+from flask import Flask, render_template, request
+import requests
+import re
+
+app = Flask(__name__)
+
+# API call to check for valid username: returns json with is_valid_username and valid_reason
+def check_user(username):
+    url = f"http://ucr-lemon.duckdns.org:4000/user/checkusername?username={username}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        if data["is_valid_username"]:
+            return True  
+        else:
+            return False  
+    else:
+        return False 
+
+def check_password_strength(password):
+    length_check = len(password) > 8
+    uppercase_check = any(char.isupper() for char in password)
+    lowercase_check = any(char.islower() for char in password)
+    special_character_check = bool(re.search(r"[!@#$%^&*(),.?\":{}|<>]", password))
+    
+    return length_check and uppercase_check and lowercase_check and special_character_check
+
+@app.route("/", methods=["GET", "POST"])
+def home():
+    if request.method == "POST":
+        username = request.form["username"]
+        email = request.form["email"]
+        password = request.form["password"]
+        signup_token = request.form["invitetoken"]
+
+        if not check_password_strength(password):
+            return "Password does not meet the required criteria. Please check the password requirements.", 400
+        elif not check_user(username):
+            return "User account could not be created. Username already taken.", 400
+        else:
+            data = {
+                "username": username,
+                "email": email,
+                "password": password,
+                "invitetoken": signup_token
+            }
+            response = requests.post("http://ucr-lemon.duckdns.org:4000/user/signup", data=data)
+            if response.status_code == 200:
+                return "User account created successfully!"
+            else:
+                return f"Failed to create user account. Status code: {response.status_code}", 500
+
+    return render_template("index.html")
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
